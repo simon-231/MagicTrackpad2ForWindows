@@ -411,7 +411,9 @@ AmtPtpGetStrings(
 	void                   *pStringBuffer = NULL;
 	WDFMEMORY              memHandle;
 	USHORT                 wcharCount;
-	size_t                 actualSize;
+	size_t                 stringBytes;
+	size_t                 outputBytes;
+	WCHAR*                 sourceString;
 	UCHAR                  strIndex;
 
 	ULONG                  inputValue;
@@ -483,7 +485,7 @@ AmtPtpGetStrings(
 				TRACE_DRIVER, 
 				"%!FUNC! gets invalid string type"
 			);
-			return status;
+			return STATUS_INVALID_PARAMETER;
 	}
 
 	status = WdfUsbTargetDeviceAllocAndQueryString(
@@ -504,34 +506,45 @@ AmtPtpGetStrings(
 		return status;
 	}
 
+	// USB descriptors need not include the terminator required by HID strings.
+	stringBytes = (size_t)wcharCount * sizeof(WCHAR);
+	sourceString = WdfMemoryGetBuffer(memHandle, NULL);
+	outputBytes = stringBytes;
+	if (wcharCount == 0 || sourceString[wcharCount - 1] != L'\0') {
+		outputBytes += sizeof(WCHAR);
+	}
 	status = WdfRequestRetrieveOutputBuffer(
 		Request, 
-		wcharCount * sizeof(WCHAR), 
+		outputBytes,
 		&pStringBuffer, 
-		&actualSize
+		NULL
 	);
 
 	if (!NT_SUCCESS(status)) {
 		TraceEvents(
 			TRACE_LEVEL_ERROR, 
 			TRACE_DRIVER, 
-			"%!FUNC! WdfMemoryCopyFromBuffer failed with %!STATUS!", 
+			"%!FUNC! WdfRequestRetrieveOutputBuffer failed with %!STATUS!",
 			status
 		);
-		return status;
+		goto cleanup;
 	}
 
-	WdfMemoryCopyToBuffer(
-		memHandle,
-		0, 
-		&pStringBuffer, 
-		actualSize
-	);
+	if (stringBytes != 0) {
+		status = WdfMemoryCopyToBuffer(memHandle, 0, pStringBuffer, stringBytes);
+		if (!NT_SUCCESS(status)) {
+			goto cleanup;
+		}
+	}
+	((WCHAR*)pStringBuffer)[outputBytes / sizeof(WCHAR) - 1] = L'\0';
 
 	WdfRequestSetInformation(
 		Request, 
-		actualSize
+		outputBytes
 	);
+
+cleanup:
+	WdfObjectDelete(memHandle);
 
 	TraceEvents(
 		TRACE_LEVEL_INFORMATION, 

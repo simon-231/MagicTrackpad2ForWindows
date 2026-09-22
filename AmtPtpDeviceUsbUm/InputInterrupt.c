@@ -236,7 +236,7 @@ AmtPtpServiceTouchInputInterrupt(
 	NTSTATUS Status;
 	WDFREQUEST Request;
 	WDFMEMORY  RequestMemory;
-	PTP_REPORT PtpReport;
+	PTP_REPORT PtpReport = { 0 };
 	LARGE_INTEGER CurrentPerfCounter;
 	LONGLONG PerfCounterDelta;
 
@@ -417,7 +417,7 @@ AmtPtpServiceTouchInputInterruptType5(
 	NTSTATUS   Status;
 	WDFREQUEST Request;
 	WDFMEMORY  RequestMemory;
-	PTP_REPORT PtpReport;
+	PTP_REPORT PtpReport = { 0 };
 
 	const struct TRACKPAD_FINGER_TYPE5* f;
 	const struct TRACKPAD_REPORT_TYPE5* mt_report;

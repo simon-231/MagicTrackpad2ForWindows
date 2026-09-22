@@ -128,7 +128,7 @@ PtpFilterInputParseMT2Report(
 
 	WDFREQUEST ptpRequest;
 	WDFMEMORY  ptpRequestMemory;
-	PTP_REPORT ptpOutputReport;
+	PTP_REPORT ptpOutputReport = { 0 };
 	PDRIVER_CONTEXT driverContext;
 	WDFDRIVER driver;
 
