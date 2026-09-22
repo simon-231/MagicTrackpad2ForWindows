@@ -17,7 +17,10 @@ STUBS = r'''
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+/* Microsoft CRT headers may already provide SAL annotations. */
+#ifndef _In_
 #define _In_
+#endif
 #define TraceEvents(...) ((void)0)
 #define STATUS_SUCCESS 0
 #define STATUS_INVALID_PARAMETER (-1)
