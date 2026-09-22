@@ -5,7 +5,8 @@ jobs:
     name: Build Driver Package and Control Panel
     permissions:
       contents: write
-    runs-on: windows-latest
+    # The pinned WDK packages require the Visual Studio 2022 build tasks.
+    runs-on: windows-2022
     steps:
 
       - name: Checkout Code
@@ -31,6 +32,9 @@ jobs:
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
+
+      - name: Test USB string handling
+        run: python tests/test_usb_strings.py --cc clang
 
       - name: Restore NuGet Packages
         run: |
