@@ -510,6 +510,8 @@ AmtPtpGetStrings(
 	stringBytes = (size_t)wcharCount * sizeof(WCHAR);
 	sourceString = WdfMemoryGetBuffer(memHandle, NULL);
 	outputBytes = stringBytes;
+	// Preserve descriptors that already include a terminator, including when
+	// the caller supplied exactly enough space for that descriptor.
 	if (wcharCount == 0 || sourceString[wcharCount - 1] != L'\0') {
 		outputBytes += sizeof(WCHAR);
 	}
@@ -531,6 +533,8 @@ AmtPtpGetStrings(
 	}
 
 	if (stringBytes != 0) {
+		// Copy into the caller's buffer, not the address of our local pointer.
+		// Its capacity can exceed the descriptor length; copy only source bytes.
 		status = WdfMemoryCopyToBuffer(memHandle, 0, pStringBuffer, stringBytes);
 		if (!NT_SUCCESS(status)) {
 			goto cleanup;
@@ -538,12 +542,15 @@ AmtPtpGetStrings(
 	}
 	((WCHAR*)pStringBuffer)[outputBytes / sizeof(WCHAR) - 1] = L'\0';
 
+	// Report the returned string length, including its terminating WCHAR.
 	WdfRequestSetInformation(
 		Request, 
 		outputBytes
 	);
 
 cleanup:
+	// AllocAndQueryString creates a temporary WDF object. Release it on both
+	// successful copies and failures after allocation to avoid retaining it.
 	WdfObjectDelete(memHandle);
 
 	TraceEvents(

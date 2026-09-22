@@ -236,6 +236,8 @@ AmtPtpServiceTouchInputInterrupt(
 	NTSTATUS Status;
 	WDFREQUEST Request;
 	WDFMEMORY  RequestMemory;
+	// The full report is copied out, even when fewer than five contacts exist.
+	// Initialize unused contacts and named padding bits as well as active data.
 	PTP_REPORT PtpReport = { 0 };
 	LARGE_INTEGER CurrentPerfCounter;
 	LONGLONG PerfCounterDelta;
@@ -417,6 +419,8 @@ AmtPtpServiceTouchInputInterruptType5(
 	NTSTATUS   Status;
 	WDFREQUEST Request;
 	WDFMEMORY  RequestMemory;
+	// The full report is copied out, even when fewer than five contacts exist.
+	// Initialize unused contacts and named padding bits as well as active data.
 	PTP_REPORT PtpReport = { 0 };
 
 	const struct TRACKPAD_FINGER_TYPE5* f;

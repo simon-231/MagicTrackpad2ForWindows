@@ -128,6 +128,8 @@ PtpFilterInputParseMT2Report(
 
 	WDFREQUEST ptpRequest;
 	WDFMEMORY  ptpRequestMemory;
+	// The full report is copied out, even when fewer than five contacts exist.
+	// Initialize unused contacts and named padding bits as well as active data.
 	PTP_REPORT ptpOutputReport = { 0 };
 	PDRIVER_CONTEXT driverContext;
 	WDFDRIVER driver;
